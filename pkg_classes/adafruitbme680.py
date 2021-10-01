@@ -39,13 +39,13 @@ SENSOR = adafruit_bme680.Adafruit_BME680_I2C(i2c)
 # change this to match the location's pressure (hPa) at sea level
 SENSOR.sea_level_pressure = 1023.0
 
-# done to overide pylint objections
+# start the message logging process
 
-logging.config.fileConfig(fname='/home/an/diysensor/logging.ini', disable_existing_loggers=False)
+logging.config.fileConfig(fname='/home/an/sensor/logging.ini',
+                          disable_existing_loggers=False)
 
 # Get the logger specified in the file
-LOGGER = logging.getLogger("adafruitbme680")
-
+LOGGER = logging.getLogger(__name__)
 LOGGER.info('Application started')
 
 class Bme680:

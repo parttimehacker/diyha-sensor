@@ -37,11 +37,13 @@ import adafruit_veml7700
 i2c = busio.I2C(board.SCL, board.SDA)
 SENSOR = adafruit_veml7700.VEML7700(i2c)
 
-# done to overide pylint objections
+# start the message logging process
 
-logging.config.fileConfig(fname='/home/an/sensors/logging.ini',
-                                disable_existing_loggers=False)
-LOGGER = logging.getLogger("adafruitveml7700")
+logging.config.fileConfig(fname='/home/an/sensor/logging.ini',
+                          disable_existing_loggers=False)
+
+# Get the logger specified in the file
+LOGGER = logging.getLogger(__name__)
 LOGGER.info('Application started')
 
 class Veml7700:

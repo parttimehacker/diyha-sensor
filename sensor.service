@@ -1,0 +1,8 @@
+[Unit]
+Description=Do It Yourself Home Automation Clock and Security 
+After=multi-user.target
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3 /usr/local/sensor/sensor.py --mqtt chuck.local --location diy/upper/study
+[Install]
+WantedBy=multi-user.target

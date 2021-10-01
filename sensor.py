@@ -27,36 +27,58 @@ import os
 import time
 import logging
 import logging.config
-import paho.mqtt.client as mqtt
 
+# imported third party classes
+
+import paho.mqtt.client as mqtt
 from pkg_classes.adafruitbme680 import Bme680
 from pkg_classes.adafruitveml7700 import Veml7700
-from pkg_classes.mqttlocationtopic import MqttLocationTopic
+
+# imported DIYHA classes
+
 from pkg_classes.timedevents import TimedEvents
+
+# DIYHA standard classes
+from pkg_classes.testmodel import TestModel
+from pkg_classes.topicmodel import TopicModel
+from pkg_classes.whocontroller import WhoController
+from pkg_classes.configmodel import ConfigModel
+from pkg_classes.statusmodel import StatusModel
 
 # Start logging and enable imported classes to log appropriately.
 
-logging.config.fileConfig(fname='/home/an/sensors/logging.ini',
-                          disable_existing_loggers=False)
-LOGGER = logging.getLogger("sensors")
+LOGGING_FILE = '/usr/local/sensor/logging.ini'
+logging.config.fileConfig( fname=LOGGING_FILE, disable_existing_loggers=False )
+LOGGER = logging.getLogger(__name__)
 LOGGER.info('Application started')
 
-# Location info will be provided by the MQTT broker at runtime.
+# get the command line arguments
 
-TOPIC = MqttLocationTopic()
+CONFIG = ConfigModel(LOGGING_FILE)
+
+# Location is used to create the switch topics
+
+TOPIC = TopicModel()  # Location MQTT topic
+TOPIC.set(CONFIG.get_location())
+
+# Set up who message handler from MQTT broker and wait for client.
+
+WHO = WhoController(LOGGING_FILE)
+
+# process diy/system/test development messages
+
+TEST = TestModel(LOGGING_FILE)
 
 # process system messages: calibrate sensors and location information.
 
 def system_message(msg):
     """ process system messages"""
     LOGGER.info(msg.topic+" "+msg.payload.decode('utf-8'))
-
-
-def topic_message(msg):
-    """ Set the sensors location topic. Used to publish measurements. """
-    LOGGER.info(msg.topic+" "+msg.payload.decode('utf-8'))
-    topic = msg.payload.decode('utf-8')
-    TOPIC.set(topic)
+    if msg.topic == 'diy/system/who':
+        if msg.payload == b'ON':
+            WHO.turn_on()
+        else:
+            WHO.turn_off()
 
 
 # use a dispatch model for the subscriptions
@@ -65,8 +87,6 @@ TOPIC_DISPATCH_DICTIONARY = {
         {"method":system_message},
     "diy/system/who":
         {"method":system_message},
-    TOPIC.get_setup():
-        {"method":topic_message}
     }
 
 
@@ -81,7 +101,6 @@ def on_connect(client, userdata, flags, rc_msg):
 
     client.subscribe("diy/system/calibrate", 1)
     client.subscribe("diy/system/who", 1)
-    client.subscribe(TOPIC.get_setup(), 1)
 
 
 def on_disconnect(client, userdata, rc_msg):
@@ -111,17 +130,23 @@ if __name__ == '__main__':
     CLIENT.on_disconnect = on_disconnect
     CLIENT.on_message = on_message
 
-    # Environment variable contains Mosquitto IP address.
+    # initilze the Who client for publishing.
 
-    BROKER_IP = os.environ.get('MQTT_BROKER_IP')
+    WHO.set_client(CLIENT)
 
-    CLIENT.connect(BROKER_IP, 1883, 60)
+    # command line argument for the switch mode - motion activated is the default
+
+    CLIENT.connect(CONFIG.get_broker(), 1883, 60)
     CLIENT.loop_start()
+    
+    # let MQTT stuff initialize
 
-    # message broker will send the location and set waiting to false.
+    time.sleep(2) 
 
-    while TOPIC.waiting_for_location:
-        time.sleep(5.0)
+    # initialize status monitoring
+
+    STATUS = StatusModel(CLIENT)
+    STATUS.start()
 
     # start the sensors and the timer which controls averaging and publishing
 

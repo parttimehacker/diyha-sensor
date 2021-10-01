@@ -1,0 +1,6 @@
+paho-mqtt
+RPI.GPIO
+psutil
+pylint
+adafruit-circuitpython-veml7700
+adafruit-circuitpython-bme680
