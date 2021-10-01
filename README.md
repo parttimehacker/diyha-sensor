@@ -1,16 +1,15 @@
-# sensors
+# sensor
 Do It yourself environment sensors code base. Python3 application running on Raspberry Pi Zero W.
-# clock
-Do It yourself digital clock and alarm code base. Python3 application running on Raspberry Pi. 
+
 ## Description: 
-This is my updated **Raspberry Pi** project that implements an 24 hour clock server and MQTT-to-HTTP translator for my "do it yourself home automation" system.  The application requires **Raspbian OS** and is written in **python3**. I usually create a **systemd service** so the application runs at boot.
+This is my updated **Raspberry Pi** project that implements an multi-environment sensor platform for my "do it yourself home automation" system.  The application requires **Raspbian OS** and is written in **python3**. I usually create a **systemd service** so the application runs at boot.
 
 ## Installation: 
 Installation is a three step process. First clone the repository, and then install dependent software with the **requiements.txt** file. 
 
 - Step 1 - clone this repository
 ```
-git clone https://github.com/parttimehacker/clock.git
+git clone https://github.com/parttimehacker/sensor.git
 ```
 - Step 2 - Install required software - MQTT and RPI.GPIO libraries
 ```
@@ -28,7 +27,7 @@ You need to decide whether you want to manually run the application or have it s
 ### Manual or Command Prompt
 To manually run the application enter the following command (sudo may be required on your system)
 ```
-sudo python3 clock.py --mqtt <MQTT_BROKER> --location <ROOM>
+sudo python3 sensor.py --mqtt <MQTT_BROKER> --location <ROOM>
 ```
 - <MQTT_BROKER> I use the Open Source Mosquitto broker and bridge 
 - Host names or IP address can be used.
@@ -37,15 +36,15 @@ sudo python3 clock.py --mqtt <MQTT_BROKER> --location <ROOM>
 First edit the **clock systemd service** and replace the MQTT broker and room values with their host names or IP addresse. A systemd install script will move files and enable the applicaiton via **systemctl** commands.
 - Run the script and provide the application name **admin** to setup systemd (the script uses a file name argument to create the service). 
 ```
-vi admin.service
+vi sensor.service
 ./systemd_script.sh clock
 ```
 This script also adds four aliases to the **.bash_aliases** in your home directory for convenience.
 ```
-sudo systemctl start clock
-sudo systemctl stop clock
-sudo systemctl restart clock
-sudo systemctl -l status clock
+sudo systemctl start sensor
+sudo systemctl stop sensor
+sudo systemctl restart sensor
+sudo systemctl -l status sensor
 ```
 - You will need to login or reload the **.bashrc** script to enable the alias entries. For example:
 ```
