@@ -143,27 +143,27 @@ class Bme680:
         fahrenheit = 9.0 / 5.0 * self.averages['temperature'] + 32
         info = "{0:.1f}".format(fahrenheit)
         self.client.publish(self.topic+"/temperature", str(info), 0, True)
-        time.sleep(10.0)
+        time.sleep(5.0)
 
         info = "{0:.1f}".format(self.averages['humidity'])
         self.client.publish(self.topic+"/humidity", str(info), 0, True)
-        time.sleep(10.0)
+        time.sleep(5.0)
 
         # scale pressure for units and display
         pressure = self.averages['pressure'] / 10.0
         info = "{0:.1f}".format(pressure)
         self.client.publish(self.topic+"/pressure", str(info), 0, True)
-        time.sleep(10.0)
+        time.sleep(5.0)
 
         # scale gas for units and display
         gas = self.averages['gas'] / 1000.0
         info = "{0:.1f}".format(gas)
         self.client.publish(self.topic+"/gas", str(info), 0, True)
-        time.sleep(10.0)
+        time.sleep(5.0)
 
         info = "{0:.1f}".format(self.averages['airQuality'])
         self.client.publish(self.topic+"/airQuality", str(info), 0, True)
-        time.sleep(10.0)
+
 
 if __name__ == '__main__':
     exit()
