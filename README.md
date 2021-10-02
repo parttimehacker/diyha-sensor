@@ -13,7 +13,7 @@ git clone https://github.com/parttimehacker/sensor.git
 ```
 - Step 2 - Install required software - MQTT and RPI.GPIO libraries
 ```
-cd clock
+cd sensor
 pip install -r requirements.txt
 ```
 - Step 3 - Install required software - MQTT and RPI.GPIO libraries
