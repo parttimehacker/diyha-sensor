@@ -32,25 +32,33 @@ class ConfigModel:
         the location topic for the device and an option mode for the switch.
     """
 
-    def __init__(self,logging_file):
+    def __init__(self, logging_file):
         """ Parse the command line arguements """
-        logging.config.fileConfig( fname=logging_file, disable_existing_loggers=False )
+        logging.config.fileConfig(fname=logging_file, disable_existing_loggers=False)
         # Get the logger specified in the file
         self.logger = logging.getLogger(__name__)
-        PARSER = argparse.ArgumentParser('Command Line Parser')
-        PARSER.add_argument('--mqtt', help='MQTT server IP address')
-        PARSER.add_argument('--location', help='Location topic required')
-        ARGS = PARSER.parse_args()
+        parser = argparse.ArgumentParser('Command Line Parser')
+        parser.add_argument('--mqtt', help='MQTT server IP address')
+        parser.add_argument('--location', help='Location topic required')
+        parser.add_argument('--webserver', help='Web server IP required')
+        args = parser.parse_args()
         # command line arguement for the MQTT broker hostname or IP
-        if ARGS.mqtt == None:
+        if args.mqtt is None:
             self.logger.error("Terminating> --mqtt not provided")
             exit() # manadatory
-        self.broker_ip = ARGS.mqtt
+        self.broker_ip = args.mqtt
         # command line arguement for the location topic
-        if ARGS.location == None:
+        if args.location is None:
             self.logger.error("Terminating> --location not provided")
             exit() # mandatory
-        self.location = ARGS.location
+        self.location = args.location
+        # command line arguement for the webserver topic
+        if args.webserver is None:
+            self.logger.error("Terminating> --webserver not provided")
+            exit() # mandatory
+        self.webserver = args.webserver
+        server = self.webserver.split(".", 1)
+        self.server_name = server[0]
 
     def get_broker(self, ):
         """ MQTT BORKER hostname or IP address."""
@@ -60,3 +68,10 @@ class ConfigModel:
         """ MQTT location topic for the device. """
         return self.location
 
+    def get_server_name(self,):
+        """ Web server hostname or IP address """
+        return self.server_name
+
+    def get_django_api_url(self,):
+        """ Web server hostname or IP address """
+        return 'http://' + self.webserver + "/api"

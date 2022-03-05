@@ -27,7 +27,7 @@ import socket
 import logging
 import logging.config
 
-class WhoController:
+class WhoView:
     """ Who controller handles  MQTT broker messsages for diy/system/who ON or OFF.
     """
 

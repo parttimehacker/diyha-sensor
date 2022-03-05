@@ -31,19 +31,18 @@ import logging.config
 # imported third party classes
 
 import paho.mqtt.client as mqtt
-from pkg_classes.adafruitbme680 import Bme680
-from pkg_classes.adafruitveml7700 import Veml7700
+from pkg_classes.bme680hal import Bme680HAL
+from pkg_classes.veml7700hal import Veml7700HAL
 
 # imported DIYHA classes
 
 from pkg_classes.timedevents import TimedEvents
 
 # DIYHA standard classes
-from pkg_classes.testmodel import TestModel
 from pkg_classes.topicmodel import TopicModel
-from pkg_classes.whocontroller import WhoController
+from pkg_classes.whoview import WhoView
 from pkg_classes.configmodel import ConfigModel
-from pkg_classes.statusmodel import StatusModel
+from pkg_classes.djangomodel import DjangoModel
 
 # Start logging and enable imported classes to log appropriately.
 
@@ -56,18 +55,19 @@ LOGGER.info('Application started')
 
 CONFIG = ConfigModel(LOGGING_FILE)
 
-# Location is used to create the switch topics
+# Location is used to create the topics and Django urls
 
 TOPIC = TopicModel()  # Location MQTT topic
 TOPIC.set(CONFIG.get_location())
 
+# setup web server updates
+
+DJANGO = DjangoModel(LOGGING_FILE)
+DJANGO.set_urls(CONFIG.get_django_api_url(), TOPIC.get_location_name())
+
 # Set up who message handler from MQTT broker and wait for client.
 
-WHO = WhoController(LOGGING_FILE)
-
-# process diy/system/test development messages
-
-TEST = TestModel(LOGGING_FILE)
+WHO = WhoView(LOGGING_FILE)
 
 # process system messages: calibrate sensors and location information.
 
@@ -143,19 +143,14 @@ if __name__ == '__main__':
 
     time.sleep(2) 
 
-    # initialize status monitoring
-
-    STATUS = StatusModel(CLIENT)
-    STATUS.start()
-
     # start the sensors and the timer which controls averaging and publishing
 
-    BME680 = Bme680(CLIENT, TOPIC.get_location())
+    BME680 = Bme680HAL(LOGGING_FILE, CLIENT, TOPIC.get_location_topic())
     BME680.calibrate()
 
-    VEML7700 = Veml7700(CLIENT, TOPIC.get_location())
+    VEML7700 = Veml7700HAL(LOGGING_FILE, CLIENT, TOPIC.get_location_topic())
 
-    TIMER = TimedEvents(CLIENT, TOPIC.get_location(), BME680, VEML7700)
+    TIMER = TimedEvents(CLIENT, TOPIC.get_location_name(), DJANGO, BME680, VEML7700)
 
     # loop forever checking for timed events
 

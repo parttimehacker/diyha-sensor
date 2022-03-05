@@ -35,15 +35,22 @@ class TopicModel:
         host_name = socket.gethostname()
         self.status_topic = 'diy/'+host_name+'/status'
         self.location_topic = ''
+        self.location_name = ''
 
     def set(self, location):
         """ The location topic is typically returned by MQTT message methods at startup. """
         self.location_topic = location
+        parts = location.rpartition("/")
+        self.location_name = parts[2]
 
-    def get_status(self,):
+    def get_status_topic(self,):
         """ Typically used in response to MQTT diy/system/who message. """
         return self.status_topic
 
-    def get_location(self,):
+    def get_location_topic(self,):
         """ The location topic is used to manage multiple devices. """
         return self.location_topic
+        
+    def get_location_name(self,):
+        """ The location topic is used to manage multiple devices. """
+        return self.location_name

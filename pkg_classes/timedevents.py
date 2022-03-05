@@ -28,7 +28,7 @@ import time
 class TimedEvents:
     """ timed event handler """
 
-    def __init__(self, client, topic, bme680, veml7700):
+    def __init__(self, client, location_name, django, bme680, veml7700):
         """ Initialize 10 minute measurements intervals and a calibration """
         self.timed_events_dictionary = {
             "01": {"method": self.execute_timed_event, "executed": False},
@@ -39,9 +39,20 @@ class TimedEvents:
             "51": {"method": self.execute_timed_event, "executed": False}
             }
         self.client = client
-        self.topic = topic
+        self.location_name = location_name
+        self.django = django
         self.bme680 = bme680
         self.veml7700 = veml7700
+        
+    def django_update(self,):
+        ''' PUT environment data to the Django web server '''
+        info = {'name': self.location_name}
+        info['temperature'] = self.bme680.dict['temperature']
+        info['humidity'] = self.bme680.dict['humidity']
+        info['gas'] = self.bme680.dict['gas']
+        info['pressure'] = self.bme680.dict['pressure']
+        info['lux'] = self.veml7700.dict['lux']
+        self.django.put_environment(info)
 
     def execute_timed_event(self,):
         ''' Execute timed event to compute averages and them publish. '''
@@ -49,6 +60,7 @@ class TimedEvents:
         self.bme680.publish_samples()
         self.veml7700.average_samples()
         self.veml7700.publish_samples()
+        self.django_update()
 
     def last_timed_event(self,):
         ''' Reset the timed events dictionary to restart the process. '''

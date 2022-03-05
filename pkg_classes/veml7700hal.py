@@ -37,26 +37,26 @@ import adafruit_veml7700
 i2c = busio.I2C(board.SCL, board.SDA)
 SENSOR = adafruit_veml7700.VEML7700(i2c)
 
-# start the message logging process
-
-logging.config.fileConfig(fname='/home/an/sensor/logging.ini',
-                          disable_existing_loggers=False)
-
-# Get the logger specified in the file
-LOGGER = logging.getLogger(__name__)
-LOGGER.info('Application started')
-
-class Veml7700:
+class Veml7700HAL:
     """ Idle or sleep pattern """
 
-    def __init__(self, client, topic):
+    def __init__(self, logging_file, client, topic):
         """ create initial conditions and saving display and I2C lock """
+        logging.config.fileConfig(fname=logging_file,
+            disable_existing_loggers=False)
+        # Get the logger specified in the file
+        self.logger = logging.getLogger(__name__)
+        self.logger.info('Application started')
         self.client = client
         self.topic = topic
         self.data = {}
         self.averages = {
             'ambientLight': 0.0,
             'lux': 0.0
+        }
+        self.dict = {
+            'ambientLight': "0.0",
+            'lux': "0.0"
         }
         self.samples = 0
         self.new_samples()
@@ -86,8 +86,10 @@ class Veml7700:
         """ publish data """
         info = "{0:.1f}".format(self.averages['ambientLight'])
         self.client.publish(self.topic+"/ambientLight", str(info), 0, True)
+        self.dict["ambientLight"] = info
         info = "{0:.1f}".format(self.averages['lux'])
         self.client.publish(self.topic+"/lux", str(info), 0, True)
+        self.dict["lux"] = info
 
 if __name__ == '__main__':
     exit()

@@ -2,5 +2,6 @@ paho-mqtt
 RPI.GPIO
 psutil
 pylint
+Adafruit-Blinka
 adafruit-circuitpython-veml7700
 adafruit-circuitpython-bme680

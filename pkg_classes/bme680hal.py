@@ -41,18 +41,16 @@ SENSOR.sea_level_pressure = 1023.0
 
 # start the message logging process
 
-logging.config.fileConfig(fname='/home/an/sensor/logging.ini',
-                          disable_existing_loggers=False)
-
-# Get the logger specified in the file
-LOGGER = logging.getLogger(__name__)
-LOGGER.info('Application started')
-
-class Bme680:
+class Bme680HAL:
     """ Idle or sleep pattern """
 
-    def __init__(self, client, topic):
+    def __init__(self, logging_file, client, topic):
         """ create initial conditions and saving display and I2C lock """
+        logging.config.fileConfig(fname=logging_file,
+                          disable_existing_loggers=False)
+        # Get the logger specified in the file
+        self.logger = logging.getLogger(__name__)
+        self.logger.info('Application started')
         self.client = client
         self.topic = topic
         # set to zero prior to calibration
@@ -70,12 +68,19 @@ class Bme680:
             'gas': 0.0,
             'airQuality': 0.0
         }
+        self.dict = {
+            'temperature': '0.0',
+            'humidity': '0.0',
+            'pressure': '0.0',
+            'gas': '0.0',
+            'airQuality': '0.0'
+        }
         self.samples = 0
         self.new_samples()
 
     def calibrate(self,):
         """ calibrate the BME680 sensor using burning logic """
-        LOGGER.info("Calibration: 5 minute gas resistance burn-in")
+        self.logger.info("Calibration: 5 minute gas resistance burn-in")
         start_time = time.time()
         curr_time = time.time()
         burn_in_time = 250
@@ -85,7 +90,7 @@ class Bme680:
             burn_in_data.append(SENSOR.gas)
             time.sleep(5.0)
         self.gas_baseline = sum(burn_in_data[-50:]) / 50.0
-        LOGGER.info("Calibration completed")
+        self.logger.info("Calibration completed")
 
     def new_samples(self,):
         """ initialize a new set of samples """
@@ -142,26 +147,31 @@ class Bme680:
         # convert celcius to fahrenheit
         fahrenheit = 9.0 / 5.0 * self.averages['temperature'] + 32
         info = "{0:.1f}".format(fahrenheit)
+        self.dict['temperature'] = info
         self.client.publish(self.topic+"/temperature", str(info), 0, True)
-        time.sleep(5.0)
+        time.sleep(1.0)
 
         info = "{0:.1f}".format(self.averages['humidity'])
+        self.dict['humidity'] = info
         self.client.publish(self.topic+"/humidity", str(info), 0, True)
-        time.sleep(5.0)
+        time.sleep(1.0)
 
         # scale pressure for units and display
         pressure = self.averages['pressure'] / 10.0
         info = "{0:.1f}".format(pressure)
+        self.dict['pressure'] = info
         self.client.publish(self.topic+"/pressure", str(info), 0, True)
-        time.sleep(5.0)
+        time.sleep(1.0)
 
         # scale gas for units and display
         gas = self.averages['gas'] / 1000.0
         info = "{0:.1f}".format(gas)
+        self.dict['gas'] = info
         self.client.publish(self.topic+"/gas", str(info), 0, True)
-        time.sleep(5.0)
+        time.sleep(1.0)
 
         info = "{0:.1f}".format(self.averages['airQuality'])
+        self.dict['airQuality'] = info
         self.client.publish(self.topic+"/airQuality", str(info), 0, True)
 
 
